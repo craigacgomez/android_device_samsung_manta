@@ -52,6 +52,9 @@ PRODUCT_COPY_FILES += \
     device/samsung/manta/bootanimation.zip:system/media/bootanimation.zip
 
 PRODUCT_COPY_FILES += \
+    device/samsung/manta/vold.fstab:system/etc/vold.fstab
+
+PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/tablet_core_hardware.xml:system/etc/permissions/tablet_core_hardware.xml \
     frameworks/native/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml \
     frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
@@ -129,7 +132,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_AAPT_CONFIG := xlarge hdpi xhdpi
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
 
-PRODUCT_CHARACTERISTICS := tablet,nosdcard
+PRODUCT_CHARACTERISTICS := tablet
 
 DEVICE_PACKAGE_OVERLAYS := \
     device/samsung/manta/overlay
