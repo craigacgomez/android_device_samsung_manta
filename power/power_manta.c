@@ -29,7 +29,14 @@
 #include <hardware/hardware.h>
 #include <hardware/power.h>
 
+#define SCALINGMAXFREQ_PATH "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"
 #define BOOSTPULSE_PATH "/sys/devices/system/cpu/cpufreq/interactive/boostpulse"
+
+#define MAX_BUF_SZ 256
+
+/* initialize to something safe */
+static char screen_off_max_freq[MAX_BUF_SZ] = "800000";
+static char scaling_max_freq[MAX_BUF_SZ] = "1700000";
 
 struct manta_power_module {
     struct power_module base;
@@ -58,6 +65,23 @@ static void sysfs_write(const char *path, char *s)
     }
 
     close(fd);
+}
+
+int sysfs_read(const char *path, char *buf, size_t size)
+{
+    int fd, len;
+
+    fd = open(path, O_RDONLY);
+    if (fd < 0)
+        return -1;
+
+    do {
+        len = read(fd, buf, size);
+    } while (len < 0 && errno == EINTR);
+
+    close(fd);
+
+    return len;
 }
 
 static void init_touchscreen_power_path(struct manta_power_module *manta)
@@ -127,12 +151,17 @@ static void power_set_interactive(struct power_module *module, int on)
 
     ALOGV("power_set_interactive: %d\n", on);
 
-    /*
-     * Lower maximum frequency when screen is off.  CPU 0 and 1 share a
-     * cpufreq policy.
-     */
-    sysfs_write("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq",
-                on ? "1700000" : "800000");
+	if (!on)
+	{
+		char buf_scaling_max[MAX_BUF_SZ];
+		if (sysfs_read(SCALINGMAXFREQ_PATH, buf_scaling_max, sizeof(buf_scaling_max)) != -1)
+			memcpy(scaling_max_freq, buf_scaling_max, strlen(buf_scaling_max));
+		sysfs_write(SCALINGMAXFREQ_PATH, screen_off_max_freq);
+	}
+	else
+	{
+		sysfs_write(SCALINGMAXFREQ_PATH, scaling_max_freq);
+	}
 
     sysfs_write(manta->touchscreen_power_path, on ? "Y" : "N");
 
